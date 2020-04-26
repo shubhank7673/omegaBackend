@@ -1,0 +1,21 @@
+{
+  "name": "omega",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shubhank Khare",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "ejs": "^3.1.2",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "mkdirp": "^1.0.4",
+    "mongodb": "^3.5.6",
+    "mongoose": "^5.9.10"
+  }
+}
