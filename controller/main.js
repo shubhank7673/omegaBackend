@@ -9,16 +9,21 @@ exports.postFileUpload = (req, res, next) => {
       `${__dirname}/../storage/${req.session.userFolderPath}/${file.name}`,
       err => {
         if (err) throw err;
-        res
-          .status(400)
-          .send(
-            "file upload successfully check",
-            req.session.userFolderPath,
-            "folder"
-          );
+        res.status(200).json({
+          status: "ok",
+          path: req.session.folderpath
+        });
       }
     );
   } else {
-    res.send("no files uploaded");
+    res.status(400).json({ error: "file not uploaded" });
+  }
+};
+exports.postDownload = (req, res, next) => {
+  if (!req.session.loggedIn) {
+    res.json({ error: true, message: "user not logged in" });
+  } else {
+    const file = `${__dirname}/../storage/${req.session.userFolderPath}/171B130_echo_client.c.txt`; //${req.body.filename}`;
+    res.download(file);
   }
 };

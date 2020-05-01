@@ -15,6 +15,9 @@ const store = new mongoStore({
   uri: uri,
   collection: "sessions"
 });
+// To resolve cors error [hitting on other domain from your domain]
+const cors = require("cors");
+app.use(cors());
 
 // -------------------------------- routes import----------------
 
@@ -48,13 +51,13 @@ app.set("view engine", "ejs");
 
 app.use(authRoutes);
 app.use(mainRoutes);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 mongoose
   .connect(uri)
   .then(() => {
     const db = mongoose.connection;
     app.listen(PORT, () => {
-      console.log("server started at port 3000");
+      console.log("server started at port", PORT);
     });
   })
   .catch(err => {

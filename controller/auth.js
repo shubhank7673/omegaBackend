@@ -1,9 +1,22 @@
-var folderpath = __dirname+"../storage/";
+var folderpath = __dirname + "../storage/";
 const fs = require("fs");
 const User = require("../models/user");
+const jwt = require("jsonwebtoken");
+exports.getAuthStatus = (req, res, next) => {
+  if (req.session.loggedIn) {
+    res.json({
+      loggedIn: true,
+      user: req.session.user
+    });
+  } else {
+    res.json({
+      loggedIn: false
+    });
+  }
+};
 exports.getLogin = (req, res, next) => {
   if (req.session.loggedIn) {
-    res.send(req.session.user.email);
+    res.redirect("/");
   } else {
     res.render("login.html");
   }
@@ -16,26 +29,33 @@ exports.getSignup = (req, res, next) => {
   }
 };
 exports.postLogin = (req, res, next) => {
-  // const obj = { email: req.body.email, password: req.body.password };
+  console.log(req.body.email, req.body.password);
   User.findOne({ email: req.body.email }).then(user => {
     if (!user) {
-      res.send("user not found");
+      res.json({ userFound: false });
     } else {
       if (user.password == req.body.password) {
         req.session.loggedIn = true;
         req.session.user = user;
         req.session.save(err => {
           if (err) {
-            console.log("error while saving the session in login -", err);
-            res.redirect("/login");
+            res.status(400).json({ error: true, message: err });
           } else {
-            req.session.userFolderPath = (req.body.email.split('@')[0]).toLowerCase();
-            res.send("logged in succesfully");
+            req.session.userFolderPath = "";
+            const token = jwt.sign(
+              { email: req.body.email },
+              "secret_private_key"
+            );
+            res.status(200).json({
+              status: "ok",
+              userFound: true,
+              correctPassword: true,
+              token: token
+            });
           }
         });
-      }
-      else{
-        res.send('incorrect password');
+      } else {
+        res.json({ userFound: true, correctPassword: false });
       }
     }
   });
@@ -45,7 +65,7 @@ exports.postSignup = (req, res, next) => {
     email: req.body.email
   }).then(existingUser => {
     if (existingUser) {
-      res.send("user with the provided email already exists");
+      res.status(400).json({ userExists: true });
     } else {
       const user = new User({
         email: req.body.email,
@@ -56,28 +76,16 @@ exports.postSignup = (req, res, next) => {
       user
         .save()
         .then(user => {
-          fs.mkdir(folderpath + (req.body.email.split("@")[0]).toLowerCase(), (r, err) => {
-            if (err) {
-              User.deleteOne({ email: user.email });
-              console.log("inside");
-              throw err;
-            }
-            req.session.loggedIn = true;
-            req.session.userFolderPath = (req.body.email.split('@')[0]).toLowerCase();
-            req.session.user = user;
-            req.session.save(err => {
-              if (err) {
-                console.log("error while saving the session in login -", err);
-                res.redirect("/login");
-              } else {
-                res.send("user added succesfully");
-              }
-            });
-          });
+          const token = jwt.sign(
+            { email: req.body.email },
+            "secret_private_key"
+          );
+          res.status(200).json({ status: "ok",email:req.body.email, token: token });
         })
         .catch(err => {
           if (err) {
-            throw err;
+            res.status(500).json({ error: true, message: err });
+            // throw err;
           }
         });
     }
@@ -86,8 +94,10 @@ exports.postSignup = (req, res, next) => {
 exports.postLogout = (req, res, next) => {
   req.session.destroy(err => {
     if (err) {
-      console.log("error while logging out ", err);
+      res.status(500).json({ error: true, message: err });
+      // console.log("error while logging out ", err);
     }
-    res.redirect("/");
+    res.status(200).json({ status: "ok" });
+    // res.redirect("/");
   });
 };
