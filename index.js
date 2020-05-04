@@ -48,7 +48,6 @@ app.set("views", __dirname + "/views");
 // to render html files
 app.engine("html", require("ejs").renderFile);
 app.set("view engine", "ejs");
-
 app.use(authRoutes);
 app.use(mainRoutes);
 const PORT = process.env.PORT || 5000;

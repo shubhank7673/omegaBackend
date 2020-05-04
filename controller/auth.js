@@ -2,6 +2,7 @@ var folderpath = __dirname + "../storage/";
 const fs = require("fs");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 exports.getAuthStatus = (req, res, next) => {
   if (req.session.loggedIn) {
     res.json({
@@ -34,7 +35,8 @@ exports.postLogin = (req, res, next) => {
     if (!user) {
       res.json({ userFound: false });
     } else {
-      if (user.password == req.body.password) {
+      const compareRes = bcrypt.compareSync(req.body.password,user.password);
+      if (compareRes) {
         req.session.loggedIn = true;
         req.session.user = user;
         req.session.save(err => {
@@ -65,13 +67,24 @@ exports.postSignup = (req, res, next) => {
     email: req.body.email
   }).then(existingUser => {
     if (existingUser) {
-      res.status(400).json({ userExists: true });
+      res.status(200).json({ userExists: true });
     } else {
+      let hashedPass = "";
+      try {
+        hashedPass = bcrypt.hashSync(req.body.password, 12);
+        console.log(hashedPass);
+      } catch (err) {
+        res
+          .status(200)
+          .json({ error: true, message: "error while encrypting password" });
+      }
+      console.log(req.body);
       const user = new User({
         email: req.body.email,
         firstName: req.body.firstname,
         lastName: req.body.lastname,
-        password: req.body.password
+        password: hashedPass,
+        home:{}
       });
       user
         .save()
@@ -80,24 +93,31 @@ exports.postSignup = (req, res, next) => {
             { email: req.body.email },
             "secret_private_key"
           );
-          res.status(200).json({ status: "ok",email:req.body.email, token: token });
+          res
+            .status(200)
+            .json({ status: "ok", email: req.body.email, token: token });
         })
         .catch(err => {
           if (err) {
-            res.status(500).json({ error: true, message: err });
-            // throw err;
+            console.log("in.........................");
+            console.log(err);
+            res.status(200).json({ error: true, message: err });
           }
         });
     }
   });
 };
-exports.postLogout = (req, res, next) => {
-  req.session.destroy(err => {
+exports.check = (req, res, next) => {
+  bcrypt.hash("mypassword", 10, function(err, hash) {
     if (err) {
-      res.status(500).json({ error: true, message: err });
-      // console.log("error while logging out ", err);
+      throw err;
     }
-    res.status(200).json({ status: "ok" });
-    // res.redirect("/");
+
+    bcrypt.compare( "$2b$12$YCxhKcgUHgM6OxLjX6FzAOAt42ypNXER8xar4uNONjcyrti1bz3wO","123", function(err, result) {
+      if (err) {
+        throw err;
+      }
+      console.log(result);
+    });
   });
 };

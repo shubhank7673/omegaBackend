@@ -17,6 +17,7 @@ const userSchema = new Schema({
   lastName: {
     type: String,
     required: true
-  }
+  },
+  files: []
 });
 module.exports = mongoose.model("User", userSchema);
