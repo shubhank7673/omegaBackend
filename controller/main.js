@@ -3,6 +3,26 @@ const File = require("../models/file");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const crypto = require("crypto");
+const cron = require("node-cron");
+cron.schedule("25 16 * * *",()=> {
+  User.find({})
+  .then(users => {
+    users.forEach(user => {
+      user.operations.shift();
+      user.operations.push({
+        day:(new Date()).getDate(),
+        delete:0,
+        upload:0,
+        download:0
+      })
+      user.save().then((result) => {
+        
+      }).catch((err) => {
+        console.log(err);
+      });;
+    })
+  })
+})
 exports.getFileUpload = (req, res, next) => {
   console.log(req.session.userFolderPath);
   res.render("uploadform.html");
@@ -233,11 +253,6 @@ exports.getChangeFilestatus = (req, res, next) => {
 };
 exports.getPrivateFileDownload = (req, res, next) => {
   let filename = req.params.filename.split("-")[0];
-  // console.log(filename);
-  if (filename.substring(filename.length - 2, filename.length) === "ss") {
-    console.log(filename.substring(filename.length - 2, filename.length));
-    return res.download(`${__dirname}/../storage/${filename}`);
-  }
   User.findOne({ email: req.email })
     .then(user => {
       if (!user) {
@@ -250,7 +265,21 @@ exports.getPrivateFileDownload = (req, res, next) => {
         }
       });
       if (found) {
-        return res.download(`${__dirname}/../storage/${filename}`);
+        res.download(`${__dirname}/../storage/${filename}`, err => {
+          console.log("gere");
+          if (err) {
+            console.log(err);
+            return;
+          }
+          user.operations[user.operations.length - 1].download += 1;
+          user.markModified("operations");
+          user
+            .save()
+            .then(() => {})
+            .catch(err => {
+              console.log(err);
+            });
+        });
       } else {
         return res.json({
           error: true,

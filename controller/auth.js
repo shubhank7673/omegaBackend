@@ -92,9 +92,10 @@ exports.postSignup = (req, res, next) => {
       let operations = [];
       let dt = new Date();
       for (let i = 0; i < 30; i++){
-        dt = dt.setDate(dt.getDate()-1);
         operations.push({day:dt.getDate(), delete: 0, upload: 0, download: 0 });
+        dt.setDate(dt.getDate()-1);
       }
+      operations.reverse();
       const user = new User({
         email: req.body.email,
         firstName: req.body.firstname,

@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
 const uri =
-  "mongodb+srv://admin:Shubhank12@cluster0-mulwf.mongodb.net/omega?retryWrites=true&w=majority";
+  "mongodb+srv://admin:LOLZ@cluster0-mulwf.mongodb.net/omega?retryWrites=true&w=majority";
 const mongoClient = require("mongodb").MongoClient;
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -15,6 +15,7 @@ const store = new mongoStore({
   uri: uri,
   collection: "sessions"
 });
+const cron = require("node-cron");
 // To resolve cors error [hitting on other domain from your domain]
 const cors = require("cors");
 app.use(cors());
