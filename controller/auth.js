@@ -3,6 +3,16 @@ const fs = require("fs");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+exports.getUser = (req, res, next) => {
+  User.findOne({ email: req.email })
+    .then(user => {
+      if (!user) {
+        return res.status(500).json({ error: true, message: "invalid token" });
+      }
+      return res.json({ user: user });
+    })
+    .catch(err => console.log(err));
+};
 exports.getAuthStatus = (req, res, next) => {
   if (req.session.loggedIn) {
     res.json({
@@ -35,7 +45,7 @@ exports.postLogin = (req, res, next) => {
     if (!user) {
       res.json({ userFound: false });
     } else {
-      const compareRes = bcrypt.compareSync(req.body.password,user.password);
+      const compareRes = bcrypt.compareSync(req.body.password, user.password);
       if (compareRes) {
         req.session.loggedIn = true;
         req.session.user = user;
@@ -79,12 +89,19 @@ exports.postSignup = (req, res, next) => {
           .json({ error: true, message: "error while encrypting password" });
       }
       console.log(req.body);
+      let operations = [];
+      let dt = new Date();
+      for (let i = 0; i < 30; i++){
+        dt = dt.setDate(dt.getDate()-1);
+        operations.push({day:dt.getDate(), delete: 0, upload: 0, download: 0 });
+      }
       const user = new User({
         email: req.body.email,
         firstName: req.body.firstname,
         lastName: req.body.lastname,
         password: hashedPass,
-        home:{}
+        operations,
+        files: []
       });
       user
         .save()
@@ -113,11 +130,15 @@ exports.check = (req, res, next) => {
       throw err;
     }
 
-    bcrypt.compare( "$2b$12$YCxhKcgUHgM6OxLjX6FzAOAt42ypNXER8xar4uNONjcyrti1bz3wO","123", function(err, result) {
-      if (err) {
-        throw err;
+    bcrypt.compare(
+      "$2b$12$YCxhKcgUHgM6OxLjX6FzAOAt42ypNXER8xar4uNONjcyrti1bz3wO",
+      "123",
+      function(err, result) {
+        if (err) {
+          throw err;
+        }
+        console.log(result);
       }
-      console.log(result);
-    });
+    );
   });
 };

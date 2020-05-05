@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mainController = require("../controller/main");
 const jwt = require('jsonwebtoken');
+router.get("/test",mainController.test);
 router.get("/filedownload/:filename", mainController.getDownload);
 router.use((req,res,next) => {
     // console.log(req.headers);
@@ -22,6 +23,8 @@ router.use((req,res,next) => {
     // console.log(req.email);
     next();
 })
+
+router.get("/getuser",mainController.getUser);
 router.get("/privatedownload/:filename", mainController.getPrivateFileDownload);
 router.get("/changefilestatus/:filename",mainController.getChangeFilestatus);
 router.post("/filedelete",mainController.postDelete);
