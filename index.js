@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
 const uri =
-  "mongodb+srv://admin:LOLZ@cluster0-mulwf.mongodb.net/omega?retryWrites=true&w=majority";
+  "mongodb+srv://admin:Shubhank12@cluster0-mulwf.mongodb.net/omega?retryWrites=true&w=majority";
 const mongoClient = require("mongodb").MongoClient;
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");

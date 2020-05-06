@@ -23,7 +23,7 @@ router.use((req,res,next) => {
     // console.log(req.email);
     next();
 })
-
+router.post('/changename',mainController.postChangeUsername)
 router.get("/getuser",mainController.getUser);
 router.get("/privatedownload/:filename", mainController.getPrivateFileDownload);
 router.get("/changefilestatus/:filename",mainController.getChangeFilestatus);

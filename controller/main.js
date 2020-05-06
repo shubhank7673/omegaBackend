@@ -4,33 +4,34 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const crypto = require("crypto");
 const cron = require("node-cron");
-cron.schedule("25 16 * * *",()=> {
-  User.find({})
-  .then(users => {
+cron.schedule("00 00 * * *", () => {
+  User.find({}).then(users => {
     users.forEach(user => {
       user.operations.shift();
       user.operations.push({
-        day:(new Date()).getDate(),
-        delete:0,
-        upload:0,
-        download:0
-      })
-      user.save().then((result) => {
-        
-      }).catch((err) => {
-        console.log(err);
-      });;
-    })
-  })
-})
+        day: new Date().getDate(),
+        delete: 0,
+        upload: 0,
+        download: 0
+      });
+      user
+        .save()
+        .then(result => {})
+        .catch(err => {
+          console.log(err);
+        });
+    });
+  });
+});
 exports.getFileUpload = (req, res, next) => {
-  console.log(req.session.userFolderPath);
+  // console.log(req.session.userFolderPath);
   res.render("uploadform.html");
 };
 exports.getUser = (req, res, next) => {
   User.findOne({ email: req.email })
     .then(user => {
       if (!user) {
+        // console.log("in\n");
         return res.status(500).json({ error: true, message: "invalid token" });
       }
       return res.json({ user: user });
@@ -96,7 +97,7 @@ exports.postFileUpload = (req, res, next) => {
         user
           .save()
           .then(user => {
-            console.log("inside\n");
+            // console.log("inside\n");
             file.mv(`${__dirname}/../storage/${file.name}`, err => {
               if (err) throw err;
               res.status(200).json({
@@ -129,7 +130,7 @@ exports.getDownload = (req, res, next) => {
   let len = parseInt(fileName.substring(0, ind));
   let hash = fileName.substring(ind + 1, ind + len + 1);
   var mykey = crypto.createDecipher("aes-128-cbc", "key");
-  console.log(hash);
+  // console.log(hash);
   var email = mykey.update(hash, "hex", "utf8");
   email += mykey.final("utf8");
   // console.log(mystr);
@@ -155,13 +156,13 @@ exports.getDownload = (req, res, next) => {
   });
 };
 exports.postDelete = (req, res, next) => {
-  console.log(req.email);
+  // console.log(req.email);
   User.findOne({ email: req.email })
     .then(user => {
       if (!user) {
         console.log(".............inside..............\n");
       }
-      console.log(req.body.fileId);
+      // console.log(req.body.fileId);
       user.files = user.files.filter(file => {
         return file.serverName.toString() !== req.body.fileId.toString();
       });
@@ -198,9 +199,9 @@ exports.getChangeFilestatus = (req, res, next) => {
       let newServerName = req.params.filename;
       let error = false;
       user.files.forEach((file, index) => {
-        console.log(file.serverName, req.params.filename);
+        // console.log(file.serverName, req.params.filename);
         if (file.serverName === req.params.filename) {
-          console.log("indi\n");
+          // console.log("indi\n");
           let status = file.serverName.substring(
             file.serverName.length - 2,
             file.serverName.length
@@ -208,7 +209,7 @@ exports.getChangeFilestatus = (req, res, next) => {
           if (status === "ss") {
             // console.log(user.files[index].serverName);
             let oldp = `${__dirname}/../storage/${user.files[index].serverName}`;
-            console.log(oldp);
+            // console.log(oldp);
             user.files[index].serverName =
               file.serverName.substring(0, file.serverName.length - 2) + "ns";
             fs.rename(
@@ -288,4 +289,24 @@ exports.getPrivateFileDownload = (req, res, next) => {
       }
     })
     .catch(err => console.log(err));
+};
+exports.postChangeUsername = (req, res, next) => {
+  // console.log(req.email);
+  User.findOne({ email: req.email })
+    .then(user => {
+      // console.log(user);
+      // console.log(req.body.name);
+      user.name = req.body.newName;
+      // user.markModified("name");
+      user
+        .save()
+        .then(result => {})
+        .catch(err => {
+          console.log(err);
+        });
+      res.json({ successful: true });
+    })
+    .catch(err => {
+      console.log(err);
+    });
 };
