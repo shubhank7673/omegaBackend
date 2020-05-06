@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const crypto = require("crypto");
 const cron = require("node-cron");
+const bcrypt = require("bcrypt");
 cron.schedule("00 00 * * *", () => {
   User.find({}).then(users => {
     users.forEach(user => {
@@ -32,7 +33,7 @@ exports.getUser = (req, res, next) => {
     .then(user => {
       if (!user) {
         // console.log("in\n");
-        return res.status(500).json({ error: true, message: "invalid token" });
+        // return res.status(500).json({ error: true, message: "invalid token" });
       }
       return res.json({ user: user });
     })
@@ -305,6 +306,33 @@ exports.postChangeUsername = (req, res, next) => {
           console.log(err);
         });
       res.json({ successful: true });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
+exports.postPasswordChange = (req, res, next) => {
+  // console.log("hit");
+  User.findOne({ email: req.email })
+    .then(user => {
+      let hashedPass = "";
+      try {
+        hashedPass = bcrypt.hashSync(req.body.newPassword, 12);
+        // console.log(hashedPass);
+      } catch (err) {
+        res
+          .status(200)
+          .json({ error: true, message: "error while encrypting password" });
+      }
+      user.password = hashedPass;
+      user
+        .save()
+        .then(result => {
+          return res.json({ successful: true });
+        })
+        .catch(err => {
+          console.log(err);
+        });
     })
     .catch(err => {
       console.log(err);

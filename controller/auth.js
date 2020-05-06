@@ -40,11 +40,13 @@ exports.getSignup = (req, res, next) => {
   }
 };
 exports.postLogin = (req, res, next) => {
+  console.log("hit");
   console.log(req.body.email, req.body.password);
   User.findOne({ email: req.body.email }).then(user => {
     if (!user) {
       res.json({ userFound: false });
     } else {
+      console.log(user.password);
       const compareRes = bcrypt.compareSync(req.body.password, user.password);
       if (compareRes) {
         req.session.loggedIn = true;
